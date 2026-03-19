@@ -70,13 +70,6 @@ npm run preview
 - **0 errores TypeScript, 0 warnings en build**
 - **Comparaciones con Angular** en casi todas las páginas (útil si vienes de ese ecosistema)
 
-## 📖 Temas que me costaron más
-
-- **Race conditions en `useEffect`** — Aprendí a usar `AbortController` y flags de cleanup
-- **Reglas de los Hooks** — No solo qué hacer, sino **por qué** existen esas reglas
-- **Estado derivado** — Dejar de guardar en `useState` lo que puedo calcular
-- **Lifting State Up** — El patrón más importante de React y el que más me costó entender viniendo de servicios de Angular
-
 ## 🎯 ¿Para quién es esto?
 
 - Para mí, principalmente (referencia personal)

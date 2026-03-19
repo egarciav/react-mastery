@@ -1,73 +1,92 @@
-# React + TypeScript + Vite
+# 🚀 React Mastery — Guía Completa 2026
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Mi sitio personal de aprendizaje de React, construido con React mismo. Porque la mejor forma de aprender es haciendo.
 
-Currently, two official plugins are available:
+## 🤔 ¿Qué es esto?
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Vengo de Angular y quería aprender React **de verdad** — no solo los básicos, sino **todo** lo que necesitas saber para trabajar profesionalmente con React en 2026. Así que construí este sitio como mi guía de referencia personal.
 
-## React Compiler
+**No es un tutorial más.** Es una documentación exhaustiva con:
+- ✅ Explicaciones del **porqué** de cada concepto, no solo el cómo
+- ✅ Comparaciones con Angular (para los que venimos de ese mundo)
+- ✅ Ejemplos de código reales y prácticos
+- ✅ Todos los hooks (incluso los que nadie usa pero deberías conocer)
+- ✅ Patrones modernos de 2026
+- ✅ TypeScript en todo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 📚 ¿Qué cubre?
 
-## Expanding the ESLint configuration
+**28 páginas** que van desde lo básico hasta lo avanzado:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Fundamentos
+JSX • Componentes • Props • Estado • Eventos • Renderizado Condicional • Listas y Keys
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Hooks (todos)
+`useState` • `useEffect` • `useRef` • `useMemo` • `useCallback` • `useReducer` • `useTransition` • `useDeferredValue` • `useLayoutEffect` • `useId` • `useImperativeHandle` • `useSyncExternalStore` • Custom Hooks
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Arquitectura
+Context API • Lifting State Up • Estado Derivado • Patrones de Composición • Error Boundaries
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Ecosistema
+React Router v6 • TypeScript con React • Estilos (CSS Modules, Tailwind, CVA) • Testing (Vitest + RTL)
+
+### Internals
+Virtual DOM • Ciclo de Renderizado • Reconciliación • Batching • Strict Mode • React DevTools
+
+### React 19+
+`use()` hook • Actions • Server Components • `ref` como prop normal
+
+## 🛠️ Stack Técnico
+
+- **React 19** — La versión más reciente
+- **TypeScript** — Porque el autocompletado es vida
+- **Vite** — Build tool rápido
+- **TailwindCSS v4** — Estilos con `@theme`
+- **React Router v6** — Navegación
+- **Prism** — Syntax highlighting para los ejemplos de código
+- **Lazy loading** — Cada página es un chunk separado
+
+## 🚀 Cómo correrlo
+
+```bash
+# Instalar dependencias
+npm install
+
+# Dev server (http://localhost:5173)
+npm run dev
+
+# Build de producción
+npm run build
+
+# Preview del build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 💡 Highlights del código
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Code splitting real**: cada página es lazy-loaded con `React.lazy()` + `Suspense`
+- **Componentes reutilizables**: `CodeBlock` con copy-to-clipboard, `InfoBox` para tips/warnings
+- **Sidebar responsive** con navegación por secciones
+- **0 errores TypeScript, 0 warnings en build**
+- **Comparaciones con Angular** en casi todas las páginas (útil si vienes de ese ecosistema)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 📖 Temas que me costaron más
+
+- **Race conditions en `useEffect`** — Aprendí a usar `AbortController` y flags de cleanup
+- **Reglas de los Hooks** — No solo qué hacer, sino **por qué** existen esas reglas
+- **Estado derivado** — Dejar de guardar en `useState` lo que puedo calcular
+- **Lifting State Up** — El patrón más importante de React y el que más me costó entender viniendo de servicios de Angular
+
+## 🎯 ¿Para quién es esto?
+
+- Para mí, principalmente (referencia personal)
+- Para devs de Angular que quieren aprender React
+- Para cualquiera que quiera una guía exhaustiva de React 2026 en español
+
+## 📝 Notas
+
+Este proyecto es parte de mi portafolio. Lo construí para aprender React de forma práctica y tener una referencia completa cuando la necesite. Si te sirve, genial. Si encuentras algo que mejorar, aún mejor.
+
+---
+
+**Hecho con React** • [Ver el sitio](https://react-mastery.netlify.app) (si lo deployé) • [Mi GitHub](https://github.com/egarciav)

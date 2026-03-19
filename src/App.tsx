@@ -33,7 +33,7 @@ const TestingPage = lazy(() => import('./pages/TestingPage'));
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/react-mastery">
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="text-text-muted text-sm">Cargando...</div>

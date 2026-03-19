@@ -30,6 +30,7 @@ const HooksRestantesPage = lazy(() => import('./pages/HooksRestantesPage'));
 const TypeScriptReactPage = lazy(() => import('./pages/TypeScriptReactPage'));
 const EstilosPage = lazy(() => import('./pages/EstilosPage'));
 const TestingPage = lazy(() => import('./pages/TestingPage'));
+const VitePage = lazy(() => import('./pages/VitePage'));
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
           <Route path="/portals" element={<PortalsPage />} />
           <Route path="/patrones" element={<PatronesPage />} />
           <Route path="/testing" element={<TestingPage />} />
+          <Route path="/vite" element={<VitePage />} />
           <Route path="/react19" element={<React19Page />} />
           <Route path="/server-components" element={<ServerComponentsPage />} />
           </Route>

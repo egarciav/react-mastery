@@ -62,6 +62,7 @@ const sections = [
   {
     title: 'Ecosistema',
     items: [
+      { path: '/vite', label: 'Vite', icon: Zap },
       { path: '/react-router', label: 'React Router', icon: Route },
       { path: '/typescript-react', label: 'TypeScript con React', icon: FileCode2 },
       { path: '/testing', label: 'Testing', icon: FlaskConical },

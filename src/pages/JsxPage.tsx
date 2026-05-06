@@ -1,23 +1,49 @@
 import CodeBlock from '../components/CodeBlock';
 import InfoBox from '../components/InfoBox';
 
-const jsxBasico = `// JSX parece HTML, pero en realidad es JavaScript.
-// Babel/SWC lo transforma en llamadas a funciones.
+const jsxBasico = `// ¿QUÉ ES JSX?
+// JSX = JavaScript XML. Parece HTML, pero es JavaScript.
+// Un compilador (Babel/SWC) lo transforma en llamadas a funciones.
+//
+// ¿POR QUÉ existe JSX?
+// Antes de JSX, escribías: React.createElement('h1', null, 'Hola')
+// Para cada elemento. Imagina un formulario con 20 elementos...
+// JSX hace que escribir UI sea tan natural como escribir HTML,
+// pero con TODO el poder de JavaScript disponible via {llaves}.
+//
+// ¿CÓMO funciona la transformación?
+// Tu código JSX → compilador (Babel/SWC) → createElement calls → objetos JS
 
 // Esto que escribes:
 const elemento = <h1 className="titulo">Hola Mundo</h1>;
 
-// Se transforma internamente en:
+// El compilador lo transforma en:
 const elemento2 = React.createElement(
-  'h1',
-  { className: 'titulo' },
-  'Hola Mundo'
+  'h1',                        // tipo de elemento
+  { className: 'titulo' },    // props (atributos)
+  'Hola Mundo'                 // children (contenido)
 );
 
-// Por eso JSX necesita estar dentro de un entorno
-// que lo compile (como Vite, Next.js, etc.)`;
+// Ambos producen el mismo objeto:
+// { type: 'h1', props: { className: 'titulo', children: 'Hola Mundo' } }
+// React usa este objeto para actualizar el DOM real.
 
-const jsxExpresiones = `function Perfil() {
+// Por eso JSX necesita un compilador: Vite, Next.js, CRA.
+// Sin compilador, JSX es sintaxis inválida de JavaScript.`;
+
+const jsxExpresiones = `// EXPRESIONES en JSX: las llaves {} son tu puerta a JavaScript
+//
+// ¿CÓMO funcionan las llaves?
+// Todo lo que va dentro de {} se evalúa como JavaScript.
+// El RESULTADO se inserta en el JSX. Debe ser una EXPRESIÓN
+// (produce un valor), no un statement (if, for, switch).
+//
+// ¿QUÉ puede ir dentro de {}?
+// ✅ Variables, operaciones, ternarios, llamadas a funciones, .map()
+// ❌ if/else, for, while, switch (son statements, no producen valor)
+//    Workaround: usa ternarios, &&, o IIFEs para lógica compleja.
+
+function Perfil() {
   const nombre = 'María';
   const edad = 28;
   const esAdmin = true;
@@ -25,7 +51,7 @@ const jsxExpresiones = `function Perfil() {
 
   return (
     <div>
-      {/* Las llaves {} permiten insertar CUALQUIER expresión JS */}
+      {/* Las llaves {} evalúan CUALQUIER expresión JS */}
       <h1>Hola, {nombre}</h1>
       
       {/* Expresiones matemáticas */}
@@ -86,6 +112,11 @@ const jsxAtributos = `function MiComponente() {
 }`;
 
 const jsxFragments = `import { Fragment } from 'react';
+
+// ¿POR QUÉ un solo elemento raíz?
+// Una función JS solo puede retornar UN valor. JSX se compila a
+// createElement() → un solo objeto. Dos elementos raíz = dos retornos
+// = error de sintaxis. Fragment resuelve esto: agrupa SIN agregar DOM.
 
 // ❌ ERROR: JSX debe tener UN solo elemento raíz
 function Malo() {
@@ -158,13 +189,24 @@ const jsxCondicionales = `function Panel({ usuario, notificaciones }: {
   );
 }`;
 
-const jsxVsAngular = `// ─── Angular: usa directivas en el template ───
+const jsxVsAngular = `// ANGULAR TEMPLATES vs REACT JSX — comparación directa
+//
+// ¿CUÁL es la diferencia fundamental?
+// Angular: inventa una sintaxis propia para el template (*ngIf, *ngFor,
+//   pipes, [binding], (event)). Debes aprender esta sintaxis especial.
+// React: usa JavaScript puro (if/ternario, .map(), variables, funciones).
+//   Si sabes JS, sabes JSX. No hay sintaxis extra que aprender.
+//
+// Angular 17+ ahora tiene @if/@for que se acercan más a JSX,
+// pero siguen siendo sintaxis del template, no JavaScript.
+
+// ─── Angular: directivas especiales en el template ───
 // <h1 *ngIf="usuario">Hola {{ usuario.nombre }}</h1>
 // <div *ngFor="let item of items">{{ item }}</div>
 // <p [ngClass]="{'activo': esActivo}">Texto</p>
 // <button (click)="manejarClick()">Click</button>
 
-// ─── React: usa JavaScript puro dentro de JSX ───
+// ─── React: JavaScript puro dentro de JSX ───
 function Ejemplo({ usuario, items, esActivo }: Props) {
   return (
     <>
@@ -183,98 +225,211 @@ function Ejemplo({ usuario, items, esActivo }: Props) {
   );
 }`;
 
+const ejemploGithub = `// ============================================
+// 📁 Archivo: src/components/UserProfile.tsx
+// Ejemplo COMPLETO para copiar a tu proyecto
+// ============================================
+import { useState } from 'react';
+
+interface User {
+  nombre: string;
+  edad: number;
+  email: string;
+  esAdmin: boolean;
+  hobbies: string[];
+  avatar?: string;
+}
+
+export default function UserProfile({ user }: { user: User }) {
+  const [mostrarDetalles, setMostrarDetalles] = useState(false);
+
+  // Estado derivado (no necesita useState)
+  const esAdulto = user.edad >= 18;
+  const hobbiesTexto = user.hobbies.join(', ');
+
+  return (
+    <>
+      {/*Fragment: agrupa sin nodo DOM extra */}
+      <div
+        className={\`p-6 rounded-xl border \${
+          user.esAdmin ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200'
+        }\`}
+      >
+        {/* Expresiones en JSX */}
+        <div className="flex items-center gap-4">
+          <img
+            src={user.avatar ?? '/default-avatar.png'}
+            alt={\`Avatar de \${user.nombre}\`}
+            className="w-16 h-16 rounded-full"
+          />
+          <div>
+            <h2 className="text-xl font-bold">
+              {user.nombre} {user.esAdmin && '⭐'}
+            </h2>
+            <p className="text-gray-500">{user.email}</p>
+          </div>
+        </div>
+
+        {/* Condicional con ternario */}
+        <p className="mt-3">
+          {esAdulto ? '✅ Mayor de edad' : '⚠️ Menor de edad'} — {user.edad} años
+        </p>
+
+        {/* Renderizado condicional con && */}
+        {user.hobbies.length > 0 && (
+          <div className="mt-3">
+            <p className="font-semibold">Hobbies:</p>
+            <ul className="list-disc list-inside">
+              {user.hobbies.map((hobby) => (
+                <li key={hobby}>{hobby}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Evento + estado */}
+        <button
+          onClick={() => setMostrarDetalles(!mostrarDetalles)}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          {mostrarDetalles ? 'Ocultar' : 'Ver'} detalles
+        </button>
+
+        {mostrarDetalles && (
+          <pre className="mt-3 p-3 bg-gray-100 rounded text-sm">
+            {JSON.stringify(user, null, 2)}
+          </pre>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ============================================
+// 📁 Archivo: src/App.tsx (uso del componente)
+// ============================================
+// import UserProfile from './components/UserProfile';
+//
+// function App() {
+//   return (
+//     <UserProfile
+//       user={{
+//         nombre: 'María',
+//         edad: 28,
+//         email: 'maria@example.com',
+//         esAdmin: true,
+//         hobbies: ['React', 'TypeScript', 'Música'],
+//       }}
+//     />
+//   );
+// }`;
+
 export default function JsxPage() {
   return (
     <div>
       <h1 className="text-4xl font-extrabold mb-4">JSX — JavaScript XML</h1>
       <p className="text-lg text-text-muted mb-8 leading-relaxed">
-        JSX es la sintaxis que permite escribir HTML dentro de JavaScript. Es la
-        base de todo en React y lo que hace que los componentes sean tan expresivos.
-        No es un template engine como el de Angular — es <strong>JavaScript puro</strong> con
-        azúcar sintáctica.
+        JSX es la sintaxis que permite escribir HTML dentro de JavaScript. Parece un
+        template engine, pero <strong>es JavaScript puro</strong> con azúcar sintáctica.
+        Un compilador (Babel/SWC) transforma cada tag JSX en una llamada a función.
+        Si sabes JavaScript, ya sabes JSX — no hay sintaxis nueva que aprender.
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">¿Qué es JSX realmente?</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">¿Qué es JSX realmente? — La transformación</h2>
       <p className="text-text-muted mb-4">
-        JSX no es HTML. Es una extensión de sintaxis de JavaScript que se ve
-        como HTML pero se compila a llamadas de funciones. Cuando escribes{' '}
-        <code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">&lt;h1&gt;Hola&lt;/h1&gt;</code>,
-        el compilador (Babel/SWC) lo transforma en{' '}
-        <code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">React.createElement('h1', null, 'Hola')</code>.
+        JSX no es HTML ni un template. Es una extensión de sintaxis que el compilador
+        transforma en objetos JavaScript. <code>{'<h1>Hola</h1>'}</code> se convierte en
+        <code> React.createElement('h1', null, 'Hola')</code>, que produce un objeto plano
+        que React usa para actualizar el DOM.
       </p>
       <CodeBlock code={jsxBasico} language="tsx" filename="jsx-basico.tsx" />
 
-      <InfoBox type="angular" title="En Angular usas templates HTML separados">
-        En Angular, el template HTML y la lógica TypeScript están en archivos separados
-        (o en el decorador @Component). En React, <strong>todo está junto</strong> en un
-        solo archivo. El JSX es tu template, y está rodeado de JavaScript puro. Esto
-        permite una flexibilidad enorme porque puedes usar cualquier expresión de JS
-        directamente.
+      <InfoBox type="angular" title="Angular templates separados vs React JSX integrado">
+        <p>
+          En Angular, template HTML y lógica TypeScript están <strong>separados</strong>
+          (archivo .html + .ts, o template en @Component). En React, <strong>todo está
+          junto</strong> en un solo archivo .tsx. El JSX ES tu template, rodeado de JS puro.
+          Ventaja: el IDE da autocompletado completo porque no es un string — es código.
+          Angular 17+ se acerca con inline templates, pero siguen siendo strings.
+        </p>
       </InfoBox>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Expresiones en JSX</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Expresiones en JSX — Las llaves {'{}'}</h2>
       <p className="text-text-muted mb-4">
-        Las llaves <code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">{'{}'}</code> son
-        la puerta de JavaScript dentro del JSX. Cualquier <strong>expresión</strong> válida
-        de JavaScript puede ir dentro de llaves: variables, operaciones, llamadas a
-        funciones, ternarios, etc. Lo que <strong>NO</strong> puede ir son statements
-        (if/else, for, switch como declaraciones).
+        Las llaves <code>{'{}'}</code> son tu puerta de JavaScript dentro del JSX.
+        Cualquier <strong>expresión</strong> (produce un valor) puede ir dentro: variables,
+        operaciones, ternarios, .map(). Lo que NO puede ir son <strong>statements</strong>
+        (if/else, for, switch) porque no producen un valor.
       </p>
       <CodeBlock code={jsxExpresiones} language="tsx" filename="expresiones-jsx.tsx" />
 
-      <InfoBox type="info" title="Expresión vs Statement">
+      <InfoBox type="info" title="Expresión vs Statement — ¿Por qué importa?">
         Una <strong>expresión</strong> produce un valor: <code>2 + 2</code>, <code>nombre.toUpperCase()</code>, <code>x ? 'a' : 'b'</code>.
         Un <strong>statement</strong> realiza una acción: <code>if/else</code>, <code>for</code>, <code>switch</code>.
-        JSX solo acepta expresiones dentro de las llaves porque necesita un valor para renderizar.
+        JSX necesita un <strong>valor</strong> para insertar en el DOM, por eso solo acepta expresiones.
+        Workaround: usa ternarios para if/else, .map() para for, o IIFEs para lógica compleja.
       </InfoBox>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Atributos en JSX</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Atributos JSX — Diferencias con HTML</h2>
       <p className="text-text-muted mb-4">
-        Los atributos de JSX se parecen a HTML pero con algunas diferencias
-        importantes. Recuerda: JSX es JavaScript, así que las palabras reservadas
-        de JS (<code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">class</code>,{' '}
-        <code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">for</code>) se renombran.
+        JSX es JavaScript, así que las palabras reservadas de JS (<code>class</code>,
+        <code> for</code>) se renombran. Los estilos inline son objetos JS, no strings.
+        Las propiedades CSS usan camelCase. Todo esto es porque JSX se compila a objetos JS.
       </p>
       <CodeBlock code={jsxAtributos} language="tsx" filename="atributos-jsx.tsx" />
 
-      <InfoBox type="warning" title="Diferencias clave con HTML">
+      <InfoBox type="warning" title="Diferencias clave JSX vs HTML">
         <ul className="list-disc list-inside space-y-1 mt-1">
-          <li><code>class</code> → <code>className</code> (porque <code>class</code> es keyword de JS)</li>
-          <li><code>for</code> → <code>htmlFor</code> (porque <code>for</code> es keyword de JS)</li>
+          <li><code>class</code> → <code>className</code> (class es keyword de JS)</li>
+          <li><code>for</code> → <code>htmlFor</code> (for es keyword de JS)</li>
           <li><code>style</code> acepta un <strong>objeto</strong>, no un string</li>
-          <li>Propiedades CSS en <strong>camelCase</strong>: <code>font-size</code> → <code>fontSize</code></li>
+          <li>CSS en <strong>camelCase</strong>: <code>font-size</code> → <code>fontSize</code></li>
           <li>Eventos en <strong>camelCase</strong>: <code>onclick</code> → <code>onClick</code></li>
-          <li>Todas las etiquetas deben cerrarse: <code>&lt;img /&gt;</code>, <code>&lt;br /&gt;</code></li>
+          <li>Todas las etiquetas <strong>deben cerrarse</strong>: <code>&lt;img /&gt;</code>, <code>&lt;br /&gt;</code></li>
         </ul>
       </InfoBox>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Fragments — Un solo elemento raíz</h2>
       <p className="text-text-muted mb-4">
-        Cada componente de React debe retornar <strong>un solo elemento raíz</strong>.
-        Los Fragments (<code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">&lt;&gt;...&lt;/&gt;</code>)
-        te permiten agrupar elementos sin añadir nodos extra al DOM.
+        Una función JS solo retorna UN valor → JSX debe tener UN elemento raíz.
+        Los Fragments (<code>{'<>...</>'}</code>) agrupan elementos sin agregar nodos al DOM.
+        Usa <code>{'<Fragment key={id}>'}</code> cuando necesites key (ej: en .map()).
       </p>
       <CodeBlock code={jsxFragments} language="tsx" filename="fragments.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Renderizado condicional en JSX</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Renderizado condicional — JS puro</h2>
       <p className="text-text-muted mb-4">
-        En Angular usas <code className="bg-surface-lighter px-2 py-0.5 rounded text-sm">*ngIf</code>.
-        En React usas JavaScript puro: operadores ternarios y lógicos.
+        En Angular usas <code>*ngIf</code> o <code>@if</code>. En React usas JavaScript puro:
+        ternarios (<code>a ? b : c</code>), AND lógico (<code>{'a && <B />'}</code>), o IIFEs
+        para lógica compleja. Cuidado: <code>0 {'&&'} {'<p>...'}</code> renderiza "0".
       </p>
       <CodeBlock code={jsxCondicionales} language="tsx" filename="condicionales-jsx.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">JSX vs Templates de Angular</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">JSX vs Templates Angular — Comparación directa</h2>
       <p className="text-text-muted mb-4">
-        Esta es la comparación directa de cómo se expresan los mismos conceptos:
+        Mismos conceptos, diferente filosofía: Angular inventa directivas especiales;
+        React usa JavaScript que ya conoces.
       </p>
       <CodeBlock code={jsxVsAngular} language="tsx" filename="jsx-vs-angular.tsx" />
 
-      <InfoBox type="tip" title="¿Por qué JSX en vez de templates?">
-        La ventaja principal de JSX es que <strong>es JavaScript</strong>. No necesitas
-        aprender una sintaxis especial de template (*ngIf, *ngFor, pipes). Todo lo que
-        sabes de JavaScript (map, filter, ternarios, destructuring) lo usas directamente.
-        El autocompletado del IDE funciona perfectamente porque no es un string, es código.
+      <InfoBox type="tip" title="Resumen — JSX">
+        <ul className="list-disc list-inside space-y-1">
+          <li><strong>JSX = JS + XML</strong>: se compila a createElement → objetos</li>
+          <li><strong>{'{}'} llaves</strong>: insertan expresiones JS (no statements)</li>
+          <li><strong>className, htmlFor</strong>: evitan conflicto con keywords de JS</li>
+          <li><strong>style = objeto</strong>: propiedades CSS en camelCase</li>
+          <li><strong>{'<>Fragment</>'}</strong>: agrupa sin nodo DOM extra</li>
+          <li><strong>Condicionales</strong>: ternarios y && (cuidado con 0 &&)</li>
+          <li><strong>vs Angular</strong>: JS puro en vez de directivas especiales</li>
+        </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Copia este componente completo a tu proyecto. Usa todos los conceptos de JSX
+        vistos arriba: expresiones, condicionales, Fragments, map, estilos dinámicos y eventos.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/components/UserProfile.tsx" />
     </div>
   );
 }

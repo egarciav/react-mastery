@@ -1,17 +1,21 @@
 import CodeBlock from '../components/CodeBlock';
 import InfoBox from '../components/InfoBox';
 
-const virtualDom = `// ¿Qué es el Virtual DOM?
+const virtualDom = `// ¿QUÉ ES el Virtual DOM?
+// Una representación en MEMORIA del DOM real — objetos JavaScript planos.
+// No es un DOM alternativo; es una DESCRIPCIÓN de cómo debería verse la UI.
 //
-// React mantiene una representación en memoria del DOM (Virtual DOM).
-// Cuando el estado cambia, React:
-// 1. Crea un nuevo Virtual DOM
-// 2. Lo compara con el anterior (DIFFING)
-// 3. Calcula los cambios mínimos (RECONCILIATION)
-// 4. Aplica SOLO esos cambios al DOM real (COMMIT)
+// ¿POR QUÉ existe?
+// Manipular el DOM real es CARO: cada cambio puede causar reflow/repaint.
+// Si cambias 10 cosas individualmente → 10 reflows. Es lento.
+// React agrupa todo: calcula los cambios en memoria (Virtual DOM),
+// determina el MÍNIMO de operaciones necesarias, y aplica todo de golpe.
 //
-// Esto es mucho más eficiente que manipular el DOM directamente
-// en cada cambio, porque las operaciones de DOM son costosas.
+// ¿CÓMO FUNCIONA el proceso?
+// 1. setState() → React crea un NUEVO árbol de Virtual DOM
+// 2. DIFFING: compara nuevo vs anterior (nodo por nodo)
+// 3. RECONCILIATION: calcula los cambios mínimos necesarios
+// 4. COMMIT: aplica SOLO esos cambios al DOM real (un batch)
 
 // Ejemplo visual:
 // Estado anterior:          Estado nuevo:
@@ -250,6 +254,14 @@ export default function CicloRenderizadoPage() {
           <li><strong>DevTools</strong>: instala la extensión para debugging en el navegador</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        El ciclo de renderizado es conceptual — se aplica en todos los ejemplos de las demás
+        páginas. Revisa especialmente los ejemplos de useMemo (re-renders costosos),
+        useTransition (renderizado concurrente), y useEffect (efectos post-commit).
+      </p>
+      <CodeBlock code={batchingCode} language="tsx" filename="src/concepts/batching-demo.tsx" />
     </div>
   );
 }

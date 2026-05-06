@@ -5,7 +5,7 @@ import {
   List, GitBranch, AlertCircle, Pause, DoorOpen,
   Puzzle, Rocket, BookOpen, X, Menu, Route,
   Cpu, FlaskConical, Paintbrush, FileCode2, Hash,
-  Timer, Wrench
+  Timer, Wrench, FolderTree
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -57,6 +57,12 @@ const sections = [
     items: [
       { path: '/formularios', label: 'Formularios', icon: FormInput },
       { path: '/estilos', label: 'Estilos en React', icon: Paintbrush },
+    ],
+  },
+  {
+    title: 'Buenas Prácticas',
+    items: [
+      { path: '/estructura-proyecto', label: 'Estructura de Proyecto', icon: FolderTree },
     ],
   },
   {

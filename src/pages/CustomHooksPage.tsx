@@ -1,9 +1,23 @@
 import CodeBlock from '../components/CodeBlock';
 import InfoBox from '../components/InfoBox';
 
-const hookBasico = `// Un Custom Hook es una FUNCIÓN que empieza con "use"
-// y puede usar otros hooks adentro.
-// Es la forma de REUTILIZAR lógica entre componentes.
+const hookBasico = `// ¿QUÉ ES un Custom Hook?
+// Una función de JavaScript que:
+// 1. Empieza con "use" (convención obligatoria)
+// 2. Puede llamar a otros hooks (useState, useEffect, etc.)
+// 3. Retorna lo que quieras (valores, funciones, objetos)
+//
+// ¿CÓMO FUNCIONA?
+// Es solo una función. No tiene magia. React no la trata de forma
+// especial. Lo que la hace "hook" es que DENTRO usa otros hooks.
+// El prefijo "use" activa las reglas del linter para validar
+// que se cumplan las reglas de hooks.
+//
+// ¿POR QUÉ crear custom hooks?
+// - REUTILIZAR: misma lógica en múltiples componentes
+// - SEPARAR: sacar lógica compleja del componente (responsabilidad única)
+// - TESTEAR: probar lógica aislada del componente
+// - COMPONER: combinar hooks pequeños para crear lógica más compleja
 
 // Hook personalizado: useContador
 function useContador(inicial: number = 0) {
@@ -13,10 +27,12 @@ function useContador(inicial: number = 0) {
   const decrementar = () => setCount(c => c - 1);
   const reiniciar = () => setCount(inicial);
 
+  // Retorna un objeto con estado + acciones
   return { count, incrementar, decrementar, reiniciar };
 }
 
-// Uso en cualquier componente:
+// Cada componente que usa useContador tiene su PROPIA instancia
+// ComponenteA y ComponenteB NO comparten estado — cada uno tiene su count
 function ComponenteA() {
   const { count, incrementar, reiniciar } = useContador(0);
   return (
@@ -29,11 +45,25 @@ function ComponenteA() {
 }
 
 function ComponenteB() {
-  const { count, decrementar } = useContador(100);
+  const { count, decrementar } = useContador(100); // otro inicial
   return <button onClick={decrementar}>Count: {count}</button>;
 }`;
 
-const useFetch = `// Hook para fetch de datos — extremadamente reutilizable
+const useFetch = `// Hook para fetch de datos — el custom hook más común
+//
+// ¿POR QUÉ este hook?
+// Sin él, CADA componente que hace fetch repite: useState para data,
+// loading, error + useEffect con try/catch + cleanup. Con useFetch,
+// esa lógica se escribe UNA vez y se reutiliza en toda la app.
+//
+// ¿CÓMO funciona?
+// 1. Recibe una URL → hace fetch en un useEffect
+// 2. Maneja 3 estados: data, loading, error
+// 3. useCallback memoriza fetchData → useEffect depende de ella
+// 4. Retorna los 3 estados + refetch para recargar manualmente
+//
+// Nota: en producción, usa TanStack Query (React Query) que agrega
+// cache, deduplicación, retry, y mucho más. Este hook es educativo.
 
 interface UseFetchResult<T> {
   data: T | null;
@@ -84,9 +114,20 @@ function Productos() {
 }`;
 
 const useLocalStorage = `// Hook para sincronizar estado con localStorage
+//
+// ¿POR QUÉ este hook?
+// useState pierde su valor al recargar la página. useLocalStorage
+// persiste el estado en localStorage automáticamente. Es useState
+// que "sobrevive" entre sesiones del navegador.
+//
+// ¿CÓMO funciona?
+// 1. Inicializa: lee de localStorage (lazy initializer en useState)
+// 2. Sincroniza: useEffect escribe en localStorage cada vez que cambia
+// 3. Retorna [valor, setValor] — misma API que useState
 
 function useLocalStorage<T>(key: string, valorInicial: T) {
-  // Inicializa leyendo de localStorage
+  // Lazy initializer: esta función solo se ejecuta en el PRIMER render
+  // (no en cada re-render). Lee de localStorage una sola vez.
   const [valor, setValor] = useState<T>(() => {
     try {
       const item = localStorage.getItem(key);
@@ -189,45 +230,189 @@ function A() { const { count } = useContador(); } // count = 0
 function B() { const { count } = useContador(); } // count = 0 (diferente)
 function C() { const { count } = useContador(); } // count = 0 (diferente)`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/hooks/useAsync.ts
+// Custom hook COMPLETO: manejo genérico de async operations
+// ============================================
+import { useState, useCallback } from 'react';
+
+interface AsyncState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useAsync<T>() {
+  const [state, setState] = useState<AsyncState<T>>({
+    data: null, loading: false, error: null,
+  });
+
+  const execute = useCallback(async (asyncFn: () => Promise<T>) => {
+    setState({ data: null, loading: true, error: null });
+    try {
+      const data = await asyncFn();
+      setState({ data, loading: false, error: null });
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      setState({ data: null, loading: false, error: message });
+      throw err;
+    }
+  }, []);
+
+  const reset = useCallback(() => {
+    setState({ data: null, loading: false, error: null });
+  }, []);
+
+  return { ...state, execute, reset };
+}
+
+// ============================================
+// 📁 src/hooks/useLocalStorage.ts
+// ============================================
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  const [value, setValue] = useState<T>(() => {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : initialValue;
+  });
+
+  const setStoredValue = useCallback((newValue: T | ((prev: T) => T)) => {
+    setValue(prev => {
+      const resolved = newValue instanceof Function ? newValue(prev) : newValue;
+      localStorage.setItem(key, JSON.stringify(resolved));
+      return resolved;
+    });
+  }, [key]);
+
+  return [value, setStoredValue] as const;
+}
+
+// ============================================
+// 📁 src/components/UserManager.tsx (uso de ambos hooks)
+// ============================================
+// import { useAsync } from '../hooks/useAsync';
+// import { useLocalStorage } from '../hooks/useLocalStorage';
+//
+// interface User { id: number; name: string; email: string; }
+//
+// export default function UserManager() {
+//   const { data: users, loading, error, execute } = useAsync<User[]>();
+//   const [favoritos, setFavoritos] = useLocalStorage<number[]>('favs', []);
+//
+//   const cargarUsuarios = () => {
+//     execute(() =>
+//       fetch('https://jsonplaceholder.typicode.com/users').then(r => r.json())
+//     );
+//   };
+//
+//   const toggleFav = (id: number) => {
+//     setFavoritos(prev =>
+//       prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+//     );
+//   };
+//
+//   return (
+//     <div className="p-4">
+//       <button onClick={cargarUsuarios}
+//         className="px-4 py-2 bg-blue-500 text-white rounded mb-4">
+//         {loading ? 'Cargando...' : 'Cargar usuarios'}
+//       </button>
+//       {error && <p className="text-red-500">{error}</p>}
+//       {users?.map(u => (
+//         <div key={u.id} className="flex items-center gap-2 p-2 border-b">
+//           <button onClick={() => toggleFav(u.id)}>
+//             {favoritos.includes(u.id) ? '★' : '☆'}
+//           </button>
+//           <span>{u.name}</span>
+//           <span className="text-sm text-gray-400">{u.email}</span>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }`;
+
 export default function CustomHooksPage() {
   return (
     <div>
       <h1 className="text-4xl font-extrabold mb-4">Custom Hooks</h1>
       <p className="text-lg text-text-muted mb-8 leading-relaxed">
         Los Custom Hooks permiten <strong>extraer y reutilizar lógica</strong> entre
-        componentes. Son funciones que empiezan con <code>use</code> y pueden usar
-        cualquier hook de React adentro.
+        componentes. Son funciones que empiezan con <code>use</code>, pueden llamar a
+        cualquier hook de React, y cada componente que los usa tiene su propia instancia
+        independiente. Son la herramienta principal para composición y separación de
+        responsabilidades en React.
       </p>
 
-      <InfoBox type="angular">
-        En Angular, la lógica reutilizable va en <strong>servicios</strong> (@Injectable).
-        En React, va en <strong>custom hooks</strong>. Los hooks son más flexibles porque
-        pueden manejar estado, efectos y cualquier lógica de React directamente.
+      <InfoBox type="angular" title="Angular Services vs React Custom Hooks">
+        <p>
+          En Angular, la lógica reutilizable va en <strong>servicios @Injectable</strong>
+          (singleton, inyectados via DI). En React, va en <strong>custom hooks</strong>.
+          Diferencias clave: los servicios Angular son singleton (estado compartido entre
+          componentes); los hooks crean <strong>instancias independientes</strong> por componente.
+          Para compartir estado, los hooks se combinan con Context. Los hooks también pueden
+          manejar estado, efectos y ciclo de vida directamente — algo que los servicios Angular
+          no hacen (necesitan RxJS para eso).
+        </p>
       </InfoBox>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Tu primer Custom Hook</h2>
+      <p className="text-text-muted mb-4">
+        Un custom hook es solo una función con <code>use</code> al inicio. No tiene magia —
+        lo especial es que <strong>puede usar otros hooks</strong> adentro. Cada componente
+        que lo llama obtiene su propia instancia de estado.
+      </p>
       <CodeBlock code={hookBasico} language="tsx" filename="custom-hook-basico.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">useFetch — Hook para peticiones HTTP</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">useFetch — Centralizar peticiones HTTP</h2>
       <p className="text-text-muted mb-4">
-        Uno de los hooks más útiles. Centraliza la lógica de fetch con estados de carga y error.
+        El hook más común en proyectos reales. Encapsula fetch + loading + error + refetch
+        en una sola llamada. En producción, usa <strong>TanStack Query</strong> que agrega
+        cache, deduplicación y retry automático.
       </p>
       <CodeBlock code={useFetch} language="tsx" filename="use-fetch.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">useLocalStorage — Persistencia</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">useLocalStorage — Estado que persiste</h2>
+      <p className="text-text-muted mb-4">
+        <code>useState</code> que sobrevive al recargar la página. Usa un lazy initializer
+        para leer de localStorage solo en el primer render, y <code>useEffect</code> para
+        sincronizar cada cambio.
+      </p>
       <CodeBlock code={useLocalStorage} language="tsx" filename="use-local-storage.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Reglas de Custom Hooks</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Reglas de Hooks — Por qué existen</h2>
+      <p className="text-text-muted mb-4">
+        React identifica cada hook por su <strong>posición en el orden de llamada</strong>.
+        Si el orden cambia entre renders (por un if/for), React no sabe qué estado corresponde
+        a qué hook. Por eso las reglas son estrictas.
+      </p>
       <CodeBlock code={reglas} language="tsx" filename="reglas-hooks.tsx" />
 
       <InfoBox type="tip" title="¿Cuándo crear un Custom Hook?">
         <ul className="list-disc list-inside space-y-1">
-          <li>Cuando <strong>dos o más componentes</strong> comparten la misma lógica</li>
-          <li>Cuando un componente tiene <strong>demasiada lógica</strong> y quieres separar responsabilidades</li>
-          <li>Para <strong>encapsular</strong> interacciones con APIs, localStorage, WebSockets, etc.</li>
-          <li>Para hacer la lógica <strong>testeable</strong> de forma aislada</li>
+          <li><strong>Reutilización</strong>: 2+ componentes comparten la misma lógica</li>
+          <li><strong>Separación</strong>: el componente tiene demasiada lógica (SRP)</li>
+          <li><strong>Encapsulación</strong>: APIs, localStorage, WebSockets, timers</li>
+          <li><strong>Testing</strong>: probar lógica aislada con @testing-library/react-hooks</li>
+          <li><strong>Composición</strong>: combinar hooks pequeños en lógica más compleja</li>
         </ul>
       </InfoBox>
+
+      <InfoBox type="info" title="Resumen — Custom Hooks">
+        <ul className="list-disc list-inside space-y-1">
+          <li><strong>Función use*</strong>: prefijo obligatorio que activa reglas del linter</li>
+          <li><strong>Instancia propia</strong>: cada componente tiene su estado independiente</li>
+          <li><strong>Composición</strong>: un hook puede llamar a otros hooks</li>
+          <li><strong>Reglas</strong>: siempre top-level, mismo orden, solo en componentes/hooks</li>
+          <li><strong>Hooks populares</strong>: useFetch, useLocalStorage, useDebounce, useMediaQuery</li>
+        </ul>
+      </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Dos custom hooks reales: <code>useAsync</code> (genérico para operaciones async) y
+        <code> useLocalStorage</code> (persistencia), con ejemplo de uso combinado.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/hooks/useAsync.ts + useLocalStorage.ts" />
     </div>
   );
 }

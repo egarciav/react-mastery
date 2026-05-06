@@ -3,9 +3,15 @@ import InfoBox from '../components/InfoBox';
 
 const useLayoutEffectCode = `import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-// useLayoutEffect es IGUAL que useEffect pero se ejecuta
-// SINCRÓNICAMENTE después del commit, ANTES de que el navegador pinte.
-
+// ¿QUÉ ES useLayoutEffect?
+// Igual que useEffect pero se ejecuta SINCRÓNICAMENTE después del commit,
+// ANTES de que el navegador pinte. Bloquea el pintado hasta que termine.
+//
+// ¿CUÁNDO usarlo en vez de useEffect?
+// SOLO cuando necesitas medir/modificar el DOM antes de que el usuario lo vea.
+// Ej: calcular posición de tooltip, medir dimensiones, scroll automático.
+// Si usas useEffect para esto → el usuario ve un "flash" de posición incorrecta.
+//
 // ORDEN DE EJECUCIÓN:
 // 1. React renderiza (fase render)
 // 2. React aplica cambios al DOM (fase commit)
@@ -195,6 +201,107 @@ function EstadoConexion() {
   );
 }`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/components/AccessibleForm.tsx
+// Ejemplo COMPLETO: useId, useLayoutEffect, useImperativeHandle
+// ============================================
+import { useState, useId, useLayoutEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+
+// useId: genera IDs únicos para accesibilidad (htmlFor/id, aria-describedby)
+function FormField({ label, error, children }: {
+  label: string;
+  error?: string;
+  children: (id: string, errorId: string) => React.ReactNode;
+}) {
+  const id = useId();
+  const errorId = \`\${id}-error\`;
+  return (
+    <div className="mb-4">
+      <label htmlFor={id} className="block font-medium mb-1">{label}</label>
+      {children(id, errorId)}
+      {error && <p id={errorId} className="text-red-500 text-sm mt-1">{error}</p>}
+    </div>
+  );
+}
+
+// useImperativeHandle: expone métodos específicos al padre via ref
+interface FormHandle {
+  reset: () => void;
+  focusFirst: () => void;
+}
+
+const ContactForm = forwardRef<FormHandle>(function ContactForm(_, ref) {
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    reset: () => { setNombre(''); setEmail(''); },
+    focusFirst: () => nameRef.current?.focus(),
+  }));
+
+  return (
+    <div className="space-y-3">
+      <FormField label="Nombre" error={nombre.length > 0 && nombre.length < 2 ? 'Mínimo 2 caracteres' : undefined}>
+        {(id, errorId) => (
+          <input id={id} ref={nameRef} value={nombre}
+            onChange={e => setNombre(e.target.value)}
+            aria-describedby={errorId}
+            className="w-full px-3 py-2 border rounded" />
+        )}
+      </FormField>
+      <FormField label="Email">
+        {(id) => (
+          <input id={id} type="email" value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full px-3 py-2 border rounded" />
+        )}
+      </FormField>
+    </div>
+  );
+});
+
+// useLayoutEffect: medir DOM antes de que el usuario lo vea
+function AutoResizeBox({ content }: { content: string }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useLayoutEffect(() => {
+    if (boxRef.current) {
+      setHeight(boxRef.current.scrollHeight);
+    }
+  }, [content]);
+
+  return (
+    <div ref={boxRef} style={{ height: \`\${height}px\`, transition: 'height 0.3s', overflow: 'hidden' }}
+      className="border rounded p-4 bg-gray-50">
+      {content}
+    </div>
+  );
+}
+
+export default function AccessibleForm() {
+  const formRef = useRef<FormHandle>(null);
+  const [text, setText] = useState('Escribe algo...');
+
+  return (
+    <div className="max-w-md mx-auto p-6 border rounded-xl">
+      <h2 className="text-lg font-bold mb-4">Formulario accesible</h2>
+      <ContactForm ref={formRef} />
+      <div className="flex gap-2 mt-4">
+        <button onClick={() => formRef.current?.reset()}
+          className="px-4 py-2 bg-red-500 text-white rounded">Reset</button>
+        <button onClick={() => formRef.current?.focusFirst()}
+          className="px-4 py-2 bg-blue-500 text-white rounded">Focus</button>
+      </div>
+      <hr className="my-4" />
+      <textarea value={text} onChange={e => setText(e.target.value)}
+        className="w-full px-3 py-2 border rounded mb-2" rows={2} />
+      <AutoResizeBox content={text} />
+    </div>
+  );
+}`;
+
 export default function HooksRestantesPage() {
   return (
     <div>
@@ -254,6 +361,13 @@ export default function HooksRestantesPage() {
           <span><strong>Forms (R19):</strong> useFormStatus</span>
         </div>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Formulario accesible: useId para IDs únicos, useImperativeHandle para exponer
+        reset/focus al padre, y useLayoutEffect para auto-resize de un contenedor.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/components/AccessibleForm.tsx" />
     </div>
   );
 }

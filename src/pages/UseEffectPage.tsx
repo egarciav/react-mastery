@@ -3,13 +3,27 @@ import InfoBox from '../components/InfoBox';
 
 const efectoBasico = `import { useState, useEffect } from 'react';
 
-// useEffect ejecuta código DESPUÉS de que el componente se renderiza.
-// Es el equivalente a ngOnInit + ngOnChanges + ngOnDestroy de Angular.
+// ¿QUÉ ES useEffect?
+// Ejecuta "side effects" DESPUÉS de que React actualiza el DOM.
+// Side effects = cosas que no son calcular JSX: fetch, timers,
+// suscripciones, modificar el DOM directamente, logging.
+//
+// ¿CÓMO FUNCIONA?
+// 1. React renderiza el componente (llama tu función → obtiene JSX)
+// 2. React actualiza el DOM
+// 3. React ejecuta tus useEffects DESPUÉS del paint del navegador
+//    (no bloquea la pantalla — es asíncrono respecto al render)
+//
+// ¿POR QUÉ no poner side effects directamente en el cuerpo?
+// Porque el cuerpo de la función se ejecuta DURANTE el render.
+// Los side effects ahí podrían: bloquear el render, causar loops
+// infinitos, o ejecutarse en momentos inesperados.
+// useEffect garantiza que se ejecuta DESPUÉS de que la UI está lista.
 
 function Ejemplo() {
   const [count, setCount] = useState(0);
 
-  // Se ejecuta DESPUÉS de cada render
+  // Se ejecuta DESPUÉS de cada render (sin array de dependencias)
   useEffect(() => {
     document.title = \`Clicks: \${count}\`;
     console.log('Efecto ejecutado. Count:', count);
@@ -241,6 +255,96 @@ function PerfilConAbort({ userId }: { userId: number }) {
 // StrictMode ejecuta efectos dos veces → la primera llamada se cancela/ignora.
 // Esto es intencional: StrictMode te obliga a manejar el cleanup correctamente.`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/components/GithubUser.tsx
+// Ejemplo COMPLETO: useEffect, fetch, cleanup, AbortController,
+// dependencias, estados loading/error/success
+// ============================================
+import { useState, useEffect } from 'react';
+
+interface GithubUser {
+  login: string;
+  avatar_url: string;
+  name: string | null;
+  public_repos: number;
+  bio: string | null;
+}
+
+export default function GithubUserCard({ username }: { username: string }) {
+  const [user, setUser] = useState<GithubUser | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // useEffect con dependencia + cleanup con AbortController
+  useEffect(() => {
+    if (!username.trim()) return;
+
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(
+          \`https://api.github.com/users/\${username}\`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error(\`Usuario "\${username}" no encontrado\`);
+        const data: GithubUser = await res.json();
+        setUser(data);
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+
+    // Cleanup: cancela el fetch si username cambia antes de que termine
+    return () => controller.abort();
+  }, [username]); // Solo se re-ejecuta cuando username cambia
+
+  // Early returns para estados
+  if (!username.trim()) return <p className="text-gray-400 p-4">Escribe un username</p>;
+  if (loading) return <div className="p-8 text-center animate-pulse">Buscando...</div>;
+  if (error) return <div className="p-4 bg-red-50 text-red-700 rounded">{error}</div>;
+  if (!user) return null;
+
+  return (
+    <div className="max-w-sm border rounded-xl overflow-hidden">
+      <div className="bg-gray-900 p-6 flex items-center gap-4">
+        <img src={user.avatar_url} alt={user.login}
+          className="w-16 h-16 rounded-full border-2 border-white" />
+        <div className="text-white">
+          <h3 className="font-bold text-lg">{user.name ?? user.login}</h3>
+          <p className="text-gray-400 text-sm">@{user.login}</p>
+        </div>
+      </div>
+      <div className="p-4">
+        {user.bio && <p className="text-sm text-gray-600 mb-3">{user.bio}</p>}
+        <p className="text-sm">
+          <span className="font-bold">{user.public_repos}</span> repositorios públicos
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// 📁 src/App.tsx (uso)
+// function App() {
+//   const [username, setUsername] = useState('');
+//   return (
+//     <div className="p-8">
+//       <input value={username} onChange={e => setUsername(e.target.value)}
+//         placeholder="GitHub username" className="px-3 py-2 border rounded mb-4" />
+//       <GithubUserCard username={username} />
+//     </div>
+//   );
+// }`;
+
 export default function UseEffectPage() {
   return (
     <div>
@@ -304,6 +408,13 @@ export default function UseEffectPage() {
           <li>Nunca hagas el efecto async directamente</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Tarjeta de usuario GitHub: fetch con useEffect, AbortController para cleanup,
+        dependencias, estados loading/error/success, y early returns.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/components/GithubUser.tsx" />
     </div>
   );
 }

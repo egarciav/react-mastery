@@ -16,6 +16,17 @@ npm install -D @testing-library/jest-dom jsdom
 # import '@testing-library/jest-dom';`;
 
 const primerasPruebas = `// Primer test: renderizar y verificar contenido
+//
+// ¿CÓMO funciona Testing Library?
+// Filosofía: testea como un USUARIO, no como un desarrollador.
+// No busques por className o ID — busca por texto, rol, label.
+// render() monta el componente en un DOM virtual (jsdom).
+// screen.getByText() busca el texto visible, como lo haría un usuario.
+//
+// ¿POR QUÉ Vitest + Testing Library?
+// Vitest: test runner rápido, compatible con Vite, API igual a Jest.
+// Testing Library: renderiza componentes y provee queries por accesibilidad.
+// Juntos son el estándar para testing en React en 2026.
 
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
@@ -248,6 +259,14 @@ export default function TestingPage() {
           <li>Prefiere tests de <strong>integración</strong> (varios componentes juntos) sobre unitarios aislados</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Los ejemplos de testing más útiles ya están arriba: render + queries, interacciones
+        con userEvent, tests async, y helper para Context. Copia cualquiera como base para
+        tus archivos <code>*.test.tsx</code>.
+      </p>
+      <CodeBlock code={mockContext} language="tsx" filename="src/test/context.test.tsx" />
     </div>
   );
 }

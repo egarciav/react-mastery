@@ -1,8 +1,15 @@
 import CodeBlock from '../components/CodeBlock';
 import InfoBox from '../components/InfoBox';
 
-const tiposComponentes = `// TypeScript con componentes: NUNCA uses React.FC
-// React.FC tiene problemas históricos y ya no se recomienda.
+const tiposComponentes = `// TypeScript con componentes React
+//
+// ¿POR QUÉ TypeScript en React?
+// - Autocompletado de props en el IDE
+// - Errores de compilación si olvidas una prop o pasas el tipo incorrecto
+// - Refactoring seguro: cambiar un tipo muestra TODOS los usos afectados
+// - Documentación viva: la interfaz ES la documentación de las props
+//
+// NUNCA uses React.FC — tiene problemas históricos y ya no se recomienda.
 
 // ❌ Evitar: React.FC
 const ComponenteMalo: React.FC<{ nombre: string }> = ({ nombre }) => {
@@ -269,6 +276,14 @@ export default function TypeScriptReactPage() {
           <li><code>React.ReactNode</code> para children en la mayoría de casos</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Todos los patrones TS vistos arriba se encuentran repartidos en los ejemplos completos
+        de las demás páginas (interfaces, generics, eventos tipados, hooks tipados). Revisa
+        especialmente los ejemplos de Props, Formularios y Custom Hooks.
+      </p>
+      <CodeBlock code={genericos} language="tsx" filename="src/components/GenericList.tsx" />
     </div>
   );
 }

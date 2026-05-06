@@ -308,6 +308,14 @@ export default function VitePage() {
         Para type checking continuo en desarrollo, tu IDE (VSCode) usa el servidor de TypeScript
         en segundo plano.
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        La configuración de Vite ya está en los bloques de arriba. Para crear un nuevo proyecto
+        React + TypeScript + Vite: <code>npm create vite@latest mi-app -- --template react-ts</code>.
+        La configuración de producción y env vars de arriba son copiar-y-pegar.
+      </p>
+      <CodeBlock code={configProyecto} language="tsx" filename="vite.config.ts" />
     </div>
   );
 }

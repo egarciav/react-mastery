@@ -8,6 +8,16 @@ npm install react-router-dom
 
 const setupBasico = `import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+// ¿CÓMO funciona el routing en React?
+// React es una SPA (Single Page App) — solo hay UN archivo HTML.
+// react-router-dom intercepta la navegación del navegador y renderiza
+// el componente correcto según la URL, sin recargar la página.
+//
+// ¿POR QUÉ no es built-in?
+// React es solo una librería de UI, no un framework. El routing es
+// una librería separada (react-router-dom). Angular incluye routing
+// de fábrica; React te deja elegir.
+//
 // BrowserRouter: provee el contexto de routing a toda la app
 // Routes: contenedor de rutas (solo renderiza la primera que coincide)
 // Route: define un path → componente
@@ -254,6 +264,82 @@ function App() {
 // Resultado: el bundle de Dashboard solo se descarga cuando
 // el usuario navega a /dashboard por primera vez.`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/App.tsx
+// Ejemplo COMPLETO: React Router con todas las features
+// ============================================
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, NavLink, Outlet, Navigate, useParams, useNavigate } from 'react-router-dom';
+
+// Lazy loading de páginas
+const Home = lazy(() => import('./pages/Home'));
+const Users = lazy(() => import('./pages/Users'));
+const UserDetail = lazy(() => import('./pages/UserDetail'));
+const Settings = lazy(() => import('./pages/Settings'));
+
+// Layout con navegación
+function Layout() {
+  return (
+    <div>
+      <nav className="flex gap-4 p-4 border-b">
+        {[
+          { to: '/', label: 'Inicio' },
+          { to: '/users', label: 'Usuarios' },
+          { to: '/settings', label: 'Config' },
+        ].map(link => (
+          <NavLink key={link.to} to={link.to} end={link.to === '/'}
+            className={({ isActive }) =>
+              \`px-3 py-1 rounded \${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}\`
+            }>
+            {link.label}
+          </NavLink>
+        ))}
+      </nav>
+      <main className="p-6">
+        <Suspense fallback={<p>Cargando...</p>}>
+          <Outlet />
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+// Ruta protegida (reemplaza Angular guards)
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAuth = Boolean(localStorage.getItem('token'));
+  return isAuth ? <>{children}</> : <Navigate to="/" replace />;
+}
+
+// Componente con useParams
+function UserDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  return (
+    <div>
+      <button onClick={() => navigate(-1)} className="mb-4 text-blue-500">← Volver</button>
+      <h1>Usuario #{id}</h1>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/users/:id" element={<UserDetailPage />} />
+          <Route path="/settings" element={
+            <ProtectedRoute><Settings /></ProtectedRoute>
+          } />
+          <Route path="*" element={<h1>404 — Página no encontrada</h1>} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}`;
+
 export default function ReactRouterPage() {
   return (
     <div>
@@ -313,6 +399,13 @@ export default function ReactRouterPage() {
           <li><code>useMatch(pattern)</code> — comprobar si la URL coincide</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Setup completo de React Router: BrowserRouter, rutas anidadas con Outlet, ruta protegida,
+        lazy loading, useParams, useNavigate y NavLink activo.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/App.tsx" />
     </div>
   );
 }

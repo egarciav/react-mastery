@@ -3,12 +3,22 @@ import InfoBox from '../components/InfoBox';
 
 const useStateBasico = `import { useState } from 'react';
 
-// useState es el hook para manejar estado en React.
-// Retorna un array con [valorActual, funciónParaCambiarlo]
+// ¿QUÉ ES useState?
+// El hook principal para manejar estado (datos que cambian).
+// Retorna [valorActual, funciónParaCambiarlo].
+//
+// ¿CÓMO FUNCIONA internamente?
+// 1. useState(0) → React guarda 0 en una "celda" interna del componente
+// 2. setCount(1) → React actualiza la celda a 1 y PROGRAMA un re-render
+// 3. En el re-render, useState(0) retorna 1 (el valor guardado, NO el inicial)
+// 4. React compara el JSX anterior con el nuevo → actualiza solo lo que cambió
+//
+// ¿POR QUÉ no una variable normal?
+// let count = 0; count++; → React NO se entera del cambio.
+// useState le dice a React: "este dato cambia, re-renderiza cuando lo haga".
 
 function Contador() {
-  // Declaramos una variable de estado llamada "count"
-  // 0 es el valor inicial
+  // Desestructuración de array: [valor, setter]
   const [count, setCount] = useState(0);
 
   return (
@@ -310,6 +320,104 @@ function PaginaBusqueda() {
 // Este es el FLUJO DE DATOS UNIDIRECCIONAL de React:
 // Estado vive en el padre → baja via props → hijo notifica cambios con funciones`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/components/ShoppingCart.tsx
+// Ejemplo COMPLETO: useState, inmutabilidad, estado derivado,
+// función actualizadora, lifting state up
+// ============================================
+import { useState } from 'react';
+
+interface Product {
+  id: number;
+  nombre: string;
+  precio: number;
+  cantidad: number;
+}
+
+function CartItem({ producto, onCambiarCantidad, onEliminar }: {
+  producto: Product;
+  onCambiarCantidad: (id: number, cantidad: number) => void;
+  onEliminar: (id: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between p-3 border-b">
+      <div>
+        <p className="font-bold">{producto.nombre}</p>
+        <p className="text-sm text-gray-500">\${producto.precio.toFixed(2)} c/u</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={() => onCambiarCantidad(producto.id, producto.cantidad - 1)}
+          className="px-2 py-1 border rounded" disabled={producto.cantidad <= 1}>−</button>
+        <span className="w-8 text-center">{producto.cantidad}</span>
+        <button onClick={() => onCambiarCantidad(producto.id, producto.cantidad + 1)}
+          className="px-2 py-1 border rounded">+</button>
+        <button onClick={() => onEliminar(producto.id)}
+          className="ml-2 text-red-500 hover:text-red-700">✕</button>
+      </div>
+      <p className="font-bold w-24 text-right">
+        \${(producto.precio * producto.cantidad).toFixed(2)}
+      </p>
+    </div>
+  );
+}
+
+export default function ShoppingCart() {
+  // Estado: array de productos (inmutable — siempre crear copias nuevas)
+  const [productos, setProductos] = useState<Product[]>([
+    { id: 1, nombre: 'React Book', precio: 29.99, cantidad: 1 },
+    { id: 2, nombre: 'TypeScript Course', precio: 49.99, cantidad: 2 },
+    { id: 3, nombre: 'Vite Stickers', precio: 9.99, cantidad: 3 },
+  ]);
+
+  // Estado derivado (NO usar useState para esto)
+  const total = productos.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
+  const totalItems = productos.reduce((sum, p) => sum + p.cantidad, 0);
+  const carritoVacio = productos.length === 0;
+
+  // Función actualizadora: prev => ... (depende del estado anterior)
+  const cambiarCantidad = (id: number, nuevaCantidad: number) => {
+    setProductos(prev =>
+      prev.map(p => p.id === id ? { ...p, cantidad: nuevaCantidad } : p)
+    );
+  };
+
+  const eliminar = (id: number) => {
+    setProductos(prev => prev.filter(p => p.id !== id));
+  };
+
+  const vaciarCarrito = () => setProductos([]);
+
+  return (
+    <div className="max-w-md mx-auto border rounded-xl overflow-hidden">
+      <div className="bg-gray-100 p-4 flex justify-between items-center">
+        <h2 className="text-lg font-bold">🛒 Carrito ({totalItems})</h2>
+        {!carritoVacio && (
+          <button onClick={vaciarCarrito}
+            className="text-sm text-red-500 hover:underline">Vaciar</button>
+        )}
+      </div>
+      <div>
+        {carritoVacio ? (
+          <p className="p-8 text-center text-gray-400">Carrito vacío</p>
+        ) : (
+          productos.map(p => (
+            <CartItem key={p.id} producto={p}
+              onCambiarCantidad={cambiarCantidad} onEliminar={eliminar} />
+          ))
+        )}
+      </div>
+      {!carritoVacio && (
+        <div className="p-4 bg-gray-50 flex justify-between items-center">
+          <span className="text-lg font-bold">Total:</span>
+          <span className="text-2xl font-bold text-green-600">
+            \${total.toFixed(2)}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}`;
+
 export default function EstadoPage() {
   return (
     <div>
@@ -401,6 +509,13 @@ export default function EstadoPage() {
           <li><strong>Batching</strong>: React agrupa múltiples setters en un solo re-render</li>
         </ul>
       </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        Carrito de compras: useState con arrays, inmutabilidad (map/filter/spread),
+        función actualizadora, estado derivado (total, cantidad), y comunicación hijo → padre.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/components/ShoppingCart.tsx" />
     </div>
   );
 }

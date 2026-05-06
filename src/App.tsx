@@ -31,6 +31,7 @@ const TypeScriptReactPage = lazy(() => import('./pages/TypeScriptReactPage'));
 const EstilosPage = lazy(() => import('./pages/EstilosPage'));
 const TestingPage = lazy(() => import('./pages/TestingPage'));
 const VitePage = lazy(() => import('./pages/VitePage'));
+const EstructuraProyectoPage = lazy(() => import('./pages/EstructuraProyectoPage'));
 
 function App() {
   return (
@@ -71,6 +72,7 @@ function App() {
           <Route path="/vite" element={<VitePage />} />
           <Route path="/react19" element={<React19Page />} />
           <Route path="/server-components" element={<ServerComponentsPage />} />
+          <Route path="/estructura-proyecto" element={<EstructuraProyectoPage />} />
           </Route>
         </Routes>
       </Suspense>

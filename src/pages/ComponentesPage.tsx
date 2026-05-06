@@ -1,8 +1,19 @@
 import CodeBlock from '../components/CodeBlock';
 import InfoBox from '../components/InfoBox';
 
-const componenteBasico = `// Un componente en React es simplemente una FUNCIÓN
-// que retorna JSX. Así de simple.
+const componenteBasico = `// ¿QUÉ ES un componente en React?
+// Una FUNCIÓN de JavaScript que retorna JSX. Eso es todo.
+// No hay decoradores, no hay clases, no hay módulos donde registrar.
+//
+// ¿CÓMO funciona?
+// React llama a tu función → recibe el JSX retornado → lo convierte
+// en objetos (Virtual DOM) → actualiza el DOM real donde sea necesario.
+// Cada vez que el estado cambia, React VUELVE a llamar tu función.
+//
+// ¿POR QUÉ funciones?
+// - Son simples y predecibles (mismos inputs → mismo output)
+// - Se componen fácilmente (función dentro de función)
+// - Los hooks les dan todo el poder que antes solo tenían las clases
 
 // ✅ Componente funcional (la forma moderna y recomendada)
 function Saludo() {
@@ -28,25 +39,44 @@ function App() {
   );
 }`;
 
-const reglas = `// ⚠️ REGLA OBLIGATORIA: Los componentes SIEMPRE empiezan con MAYÚSCULA
+const reglas = `// ⚠️ REGLA OBLIGATORIA: Componentes empiezan con MAYÚSCULA
+//
+// ¿POR QUÉ esta regla?
+// El compilador JSX necesita distinguir entre:
+// - Elementos HTML nativos: <div>, <p>, <span> → strings en createElement
+// - Componentes custom: <MiComponente /> → referencia a función
+//
+// La convención: minúscula = HTML, Mayúscula = componente.
+// Si usas minúscula para un componente, React lo ignora silenciosamente
+// y busca un tag HTML que no existe.
 
-// ✅ Correcto — React lo trata como componente
+// ✅ Correcto — React lo trata como componente (llama la función)
 function MiComponente() {
   return <p>Soy un componente</p>;
 }
 
-// ❌ Incorrecto — React lo trata como etiqueta HTML normal
+// ❌ Incorrecto — React busca el tag HTML <micomponente> (no existe)
 function miComponente() {
-  return <p>No soy un componente</p>;
+  return <p>Nunca se renderiza</p>;
 }
 
 // En el JSX:
-<MiComponente />   // ✅ React busca la función MiComponente
-<miComponente />   // ❌ React busca la etiqueta HTML <micomponente>
-<div />            // ✅ Etiqueta HTML normal (minúscula)`;
+<MiComponente />   // ✅ createElement(MiComponente) → llama la función
+<miComponente />   // ❌ createElement('micomponente') → tag HTML inválido
+<div />            // ✅ createElement('div') → tag HTML normal`;
 
-const composicion = `// Los componentes se COMPONEN unos dentro de otros.
-// Este es el patrón fundamental de React.
+const composicion = `// COMPOSICIÓN: el patrón fundamental de React
+//
+// ¿CÓMO funciona?
+// Componentes pequeños se ANIDAN dentro de otros para crear UIs complejas.
+// Cada componente tiene UNA responsabilidad (Boton, Encabezado, Footer).
+// El componente App los COMPONE como piezas de LEGO.
+//
+// ¿POR QUÉ composición?
+// - Reutilización: Boton se usa en múltiples lugares
+// - Mantenimiento: cambiar Boton lo cambia en TODAS partes
+// - Testing: cada pieza se prueba por separado
+// - Lectura: App muestra la ESTRUCTURA, no los detalles
 
 function Boton({ texto }: { texto: string }) {
   return (
@@ -134,6 +164,12 @@ export default function Header() {
 import Header from './components/Header';`;
 
 const componenteConTypeScript = `// TypeScript con componentes React — Tipado completo
+//
+// ¿POR QUÉ TypeScript en React?
+// - Props tipadas: si olvidas una prop obligatoria → error de compilación
+// - Autocompletado: el IDE te muestra qué props acepta cada componente
+// - Refactoring seguro: cambiar una interfaz muestra TODOS los usos afectados
+// - Documentación viva: la interfaz ES la documentación de las props
 
 // Definir la interfaz de props (recomendado)
 interface TarjetaUsuarioProps {
@@ -178,6 +214,81 @@ function App() {
   );
 }`;
 
+const ejemploGithub = `// ============================================
+// 📁 src/components/ProductCard.tsx
+// Ejemplo COMPLETO: composición de componentes
+// ============================================
+import { useState } from 'react';
+
+interface ProductCardProps {
+  nombre: string;
+  precio: number;
+  imagen: string;
+  descripcion: string;
+  enStock: boolean;
+  onAgregar: (nombre: string) => void;
+}
+
+function Badge({ children, color }: { children: React.ReactNode; color: string }) {
+  return (
+    <span className={\`px-2 py-1 text-xs font-bold rounded \${color}\`}>
+      {children}
+    </span>
+  );
+}
+
+function PrecioDisplay({ precio }: { precio: number }) {
+  const formateado = new Intl.NumberFormat('es-MX', {
+    style: 'currency', currency: 'MXN',
+  }).format(precio);
+  return <p className="text-2xl font-bold text-green-600">{formateado}</p>;
+}
+
+export default function ProductCard({
+  nombre, precio, imagen, descripcion, enStock, onAgregar,
+}: ProductCardProps) {
+  const [cantidad, setCantidad] = useState(1);
+
+  return (
+    <div className="border rounded-xl overflow-hidden shadow-md">
+      <img src={imagen} alt={nombre} className="w-full h-48 object-cover" />
+      <div className="p-4">
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-bold">{nombre}</h3>
+          <Badge color={enStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+            {enStock ? 'En stock' : 'Agotado'}
+          </Badge>
+        </div>
+        <p className="text-gray-500 text-sm mt-1">{descripcion}</p>
+        <PrecioDisplay precio={precio * cantidad} />
+        <div className="flex items-center gap-3 mt-3">
+          <button onClick={() => setCantidad(c => Math.max(1, c - 1))}
+            className="px-3 py-1 border rounded">−</button>
+          <span className="font-bold">{cantidad}</span>
+          <button onClick={() => setCantidad(c => c + 1)}
+            className="px-3 py-1 border rounded">+</button>
+          <button onClick={() => onAgregar(nombre)} disabled={!enStock}
+            className="ml-auto px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
+            Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 📁 src/App.tsx
+// import ProductCard from './components/ProductCard';
+// function App() {
+//   return (
+//     <ProductCard
+//       nombre="MacBook Pro" precio={29999} enStock={true}
+//       imagen="/macbook.jpg" descripcion="Laptop Apple M3"
+//       onAgregar={(name) => alert(\`Agregado: \${name}\`)}
+//     />
+//   );
+// }`;
+
 export default function ComponentesPage() {
   return (
     <div>
@@ -185,65 +296,87 @@ export default function ComponentesPage() {
       <p className="text-lg text-text-muted mb-8 leading-relaxed">
         Los componentes son el <strong>bloque fundamental</strong> de React. Todo en React
         es un componente: un botón, un formulario, una página completa, la app entera.
-        Son funciones de JavaScript que retornan JSX.
+        Son funciones de JavaScript que retornan JSX. React las llama, recibe el JSX,
+        y actualiza el DOM. Cada vez que el estado cambia, React vuelve a llamar la función.
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Tu primer componente</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Tu primer componente — Solo una función</h2>
       <p className="text-text-muted mb-4">
-        Un componente es una función que retorna JSX. Así de simple. No necesitas
-        decoradores, no necesitas clases, no necesitas registrar nada en un módulo.
+        Un componente es una función que retorna JSX. No necesitas decoradores, clases,
+        ni registrar nada en un módulo. La función <strong>es</strong> el componente.
       </p>
       <CodeBlock code={componenteBasico} language="tsx" filename="componente-basico.tsx" />
 
-      <InfoBox type="angular" title="Comparación directa con Angular">
+      <InfoBox type="angular" title="Angular @Component vs React función">
         <p>
           En Angular un componente requiere: <code>@Component</code> decorator, una clase,
-          un selector, un template (o templateUrl), y registrarlo en un módulo con{' '}
-          <code>declarations</code>. En React es <strong>solo una función</strong> que retorna
-          JSX. No hay módulos, no hay decoradores, no hay selectores. La función ES el componente.
+          un selector, un template, estilos, y registrarlo en un módulo o hacerlo standalone.
+          En React es <strong>solo una función</strong> que retorna JSX. No hay módulos, no
+          hay decoradores, no hay selectores, no hay ngOnInit. La simplicidad es intencional:
+          menos boilerplate = más tiempo construyendo features.
         </p>
       </InfoBox>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Regla de nomenclatura</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Regla de nomenclatura — Por qué Mayúscula</h2>
       <p className="text-text-muted mb-4">
-        React distingue entre componentes y elementos HTML por la primera letra.
-        Esta regla es <strong>obligatoria</strong>.
+        El compilador JSX distingue componentes de HTML por la primera letra: minúscula =
+        tag HTML, Mayúscula = componente. Esta regla es <strong>obligatoria</strong> — si
+        usas minúscula, React busca un tag HTML que no existe.
       </p>
       <CodeBlock code={reglas} language="tsx" filename="regla-mayuscula.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Composición de componentes</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Composición — Construir con piezas</h2>
       <p className="text-text-muted mb-4">
-        El poder de React está en la composición: construyes componentes pequeños y
-        los combinas para crear interfaces complejas. Es como armar con LEGO.
+        El poder de React: componentes pequeños (una responsabilidad) que se combinan
+        para crear UIs complejas. Cada pieza es reutilizable, testeable, y mantenible.
       </p>
       <CodeBlock code={composicion} language="tsx" filename="composicion.tsx" />
 
-      <InfoBox type="tip" title="Piensa en componentes pequeños">
-        Un buen componente hace <strong>una sola cosa</strong> y la hace bien. Si un
-        componente crece mucho, probablemente debas dividirlo en componentes más pequeños.
-        Pregúntate: ¿puedo reutilizar esta parte en otro lugar?
+      <InfoBox type="tip" title="¿Cuándo dividir un componente?">
+        Un buen componente hace <strong>una sola cosa</strong>. Señales de que debes dividir:
+        el archivo tiene más de ~150 líneas, el componente acepta muchas props, o puedes
+        identificar partes que se reutilizarían en otro lugar.
       </InfoBox>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Organización de archivos</h2>
       <p className="text-text-muted mb-4">
-        React no impone una estructura de carpetas (a diferencia de Angular que es
-        muy opinionado). La convención más usada es un componente por archivo.
+        React no impone estructura de carpetas (Angular es muy opinionado con su CLI).
+        La convención: un componente por archivo, <code>components/</code> para reutilizables,
+        <code> pages/</code> para vistas, <code>hooks/</code> para custom hooks.
       </p>
       <CodeBlock code={archivoOrganizacion} language="tsx" filename="organizacion.tsx" />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Componentes con TypeScript</h2>
+      <h2 className="text-2xl font-bold mt-10 mb-4">Componentes con TypeScript — Props tipadas</h2>
       <p className="text-text-muted mb-4">
-        TypeScript es opcional en React pero <strong>altamente recomendado</strong>.
-        Las interfaces definen el contrato de las props que un componente acepta.
+        TypeScript es opcional pero <strong>altamente recomendado</strong>. Las interfaces
+        definen el contrato de props: si olvidas una obligatoria, TypeScript da error en
+        compilación. El IDE te da autocompletado de todas las props disponibles.
       </p>
       <CodeBlock code={componenteConTypeScript} language="tsx" filename="componente-typescript.tsx" />
 
-      <InfoBox type="info" title="¿Componentes de clase?">
-        React antes usaba componentes de clase (<code>class MyComponent extends React.Component</code>).
-        En 2026 esto es <strong>código legacy</strong>. Los componentes funcionales con hooks
-        reemplazaron completamente a los de clase. No necesitas aprenderlos a menos que
-        mantengas código antiguo.
+      <InfoBox type="info" title="¿Componentes de clase? → Legacy">
+        React antes usaba <code>class MyComponent extends React.Component</code>. En 2026
+        es <strong>código legacy</strong>. Los componentes funcionales con hooks los
+        reemplazaron completamente. Solo necesitas aprenderlos si mantienes código antiguo.
       </InfoBox>
+
+      <InfoBox type="tip" title="Resumen — Componentes">
+        <ul className="list-disc list-inside space-y-1">
+          <li><strong>Función → JSX</strong>: un componente es solo una función</li>
+          <li><strong>Mayúscula obligatoria</strong>: React distingue componentes de HTML</li>
+          <li><strong>Composición</strong>: piezas pequeñas combinadas en UIs complejas</li>
+          <li><strong>Un archivo por componente</strong>: convención estándar</li>
+          <li><strong>TypeScript</strong>: interfaces para props = documentación + seguridad</li>
+          <li><strong>No clases</strong>: funciones + hooks es el estándar moderno</li>
+        </ul>
+      </InfoBox>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">🚀 Ejemplo completo para tu GitHub</h2>
+      <p className="text-text-muted mb-4">
+        ProductCard con composición: sub-componentes Badge y PrecioDisplay, props tipadas,
+        estado local, y comunicación hijo → padre con <code>onAgregar</code>.
+      </p>
+      <CodeBlock code={ejemploGithub} language="tsx" filename="src/components/ProductCard.tsx" />
     </div>
   );
 }
